@@ -2,6 +2,7 @@
 
 import { loadShader } from './shaderLoader.js';
 import { createGridMesh } from './terrain/gridMesh.js';
+import { createPerspectiveMatrix, createLookAtMatrix } from './math/matrices.js';
 
 const initWebGPU = async (): Promise<{
     device: GPUDevice;
@@ -68,6 +69,11 @@ type TerrainBuffers = {
     indexCount: number;
 };
 
+type CameraUniforms = {
+    uniformBuffer: GPUBuffer;
+    bindGroup: GPUBindGroup;
+};
+
 /**
  * Creates GPU buffers for terrain rendering
  * This function takes our CPU-side mesh data and uploads it to the GPU
@@ -102,6 +108,68 @@ const createTerrainBuffers = (device: GPUDevice): TerrainBuffers => {
         indexBuffer,
         indexCount: mesh.indices.length,
     };
+};
+
+/**
+ * Creates camera uniform buffer and bind group
+ */
+const createCameraUniforms = (device: GPUDevice, pipeline: GPURenderPipeline, canvas: HTMLCanvasElement): CameraUniforms => {
+    // Create uniform buffer (4x4 matrix = 16 floats = 64 bytes)
+    const uniformBuffer = device.createBuffer({
+        label: 'Camera Uniforms',
+        size: 64, // 16 floats * 4 bytes each
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+    
+    // Debug: Let's start with a simple transformation and build up
+    console.log('Canvas size:', canvas.width, canvas.height);
+    console.log('Creating camera uniforms...');
+    
+    // Isometric view: rotate around X axis to look down, then rotate around Y axis for angle
+    const scale = 0.1;
+    const cos45 = Math.cos(Math.PI / 4);  // 45 degrees
+    const sin45 = Math.sin(Math.PI / 4);
+    const cos30 = Math.cos(Math.PI / 6);  // 30 degrees  
+    const sin30 = Math.sin(Math.PI / 6);
+    
+    const viewProjMatrix = new Float32Array([
+        scale * cos45,   0,              scale * sin45,    0,     // X rotation around Y
+        -scale * sin30 * sin45, scale * cos30,   scale * sin30 * cos45,  0,  // Y tilted down  
+        0,               0,              0.001,            0,     // Z (minimal for depth)
+        0,               0,              0,                1      // W
+    ]);
+    
+    console.log('Matrix created:', viewProjMatrix);
+    
+    // Upload to GPU
+    device.queue.writeBuffer(uniformBuffer, 0, viewProjMatrix);
+    
+    // Create bind group
+    const bindGroup = device.createBindGroup({
+        label: 'Camera Bind Group',
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [{
+            binding: 0,
+            resource: { buffer: uniformBuffer },
+        }],
+    });
+    
+    return { uniformBuffer, bindGroup };
+};
+
+// Simple 4x4 matrix multiplication
+const multiplyMatrices = (a: Float32Array, b: Float32Array): Float32Array => {
+    const result = new Float32Array(16);
+    for (let i = 0; i < 4; i++) {
+        for (let j = 0; j < 4; j++) {
+            result[i * 4 + j] = 
+                (a[i * 4 + 0] ?? 0) * (b[0 * 4 + j] ?? 0) +
+                (a[i * 4 + 1] ?? 0) * (b[1 * 4 + j] ?? 0) +
+                (a[i * 4 + 2] ?? 0) * (b[2 * 4 + j] ?? 0) +
+                (a[i * 4 + 3] ?? 0) * (b[3 * 4 + j] ?? 0);
+        }
+    }
+    return result;
 };
 
 const createRenderPipeline = async (device: GPUDevice, format: GPUTextureFormat): Promise<GPURenderPipeline> => {
@@ -171,6 +239,9 @@ const main = async (): Promise<void> => {
         // Create terrain buffers
         const terrain = createTerrainBuffers(device);
         
+        // Create camera uniforms
+        const camera = createCameraUniforms(device, pipeline, canvas);
+        
         // Simple render loop for now
         const render = (): void => {
             const commandEncoder = device.createCommandEncoder();
@@ -187,6 +258,9 @@ const main = async (): Promise<void> => {
             
             const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
             passEncoder.setPipeline(pipeline);
+            
+            // Bind uniform buffer (camera matrices)
+            passEncoder.setBindGroup(0, camera.bindGroup);
             
             // Bind vertex buffer
             passEncoder.setVertexBuffer(0, terrain.vertexBuffer);

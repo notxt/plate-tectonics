@@ -1,3 +1,9 @@
+struct Uniforms {
+    view_proj_matrix: mat4x4<f32>,
+}
+
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+
 struct VertexInput {
     @location(0) position: vec3<f32>,
 }
@@ -11,13 +17,8 @@ struct VertexOutput {
 fn vs_main(input: VertexInput) -> VertexOutput {
     var output: VertexOutput;
     
-    // Scale down the grid to fit in view and use actual 3D positions
-    output.clip_position = vec4<f32>(
-        input.position.x * 0.2,
-        input.position.y * 0.2,  // Use the height values!
-        input.position.z * 0.2,  // Use Z for depth
-        1.0
-    );
+    // Transform position using view-projection matrix
+    output.clip_position = uniforms.view_proj_matrix * vec4<f32>(input.position, 1.0);
     
     // Color based on height (elevation)
     // Higher terrain = more red/white, lower = more blue/green
