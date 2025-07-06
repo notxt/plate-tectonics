@@ -74,14 +74,43 @@ struct VertexOutput {
     @location(0) color: vec3<f32>,
 }
 
-// Step 5: Calculate terrain height using Perlin noise
-fn get_terrain_height(pos: vec2<f32>) -> f32 {
-    // Scale the position to control terrain frequency
-    let noise_scale = 2.0;  // Larger = more zoomed out terrain features
-    let height_scale = 1.0; // Larger = more dramatic height differences
+// Step 5: Fractal noise function - layers multiple octaves for realistic terrain
+fn fractal_noise(pos: vec2<f32>, octaves: i32) -> f32 {
+    var value = 0.0;          // Accumulated noise value
+    var amplitude = 1.0;      // Current octave amplitude
+    var frequency = 1.0;      // Current octave frequency
+    var max_value = 0.0;      // Track maximum possible value for normalization
     
-    // Sample Perlin noise and scale it
-    let noise_value = perlin_noise(pos * noise_scale);
+    // Parameters for fractal generation
+    let lacunarity = 2.0;     // How much frequency increases each octave
+    let persistence = 0.5;    // How much amplitude decreases each octave
+    
+    // Layer multiple octaves of noise
+    for (var i = 0; i < octaves; i++) {
+        // Add this octave's contribution
+        value += perlin_noise(pos * frequency) * amplitude;
+        
+        // Track maximum possible value (for normalization)
+        max_value += amplitude;
+        
+        // Prepare for next octave
+        amplitude *= persistence;  // Reduce amplitude (less influence)
+        frequency *= lacunarity;   // Increase frequency (more detail)
+    }
+    
+    // Normalize to keep values in reasonable range
+    return value / max_value;
+}
+
+// Step 6: Calculate terrain height using fractal noise
+fn get_terrain_height(pos: vec2<f32>) -> f32 {
+    // Terrain parameters - adjust these to change terrain character
+    let noise_scale = 1.0;  // Larger = more zoomed out terrain features  
+    let height_scale = 1.5; // Larger = more dramatic height differences
+    let octave_count = 5;   // Number of detail layers (more = more detail, max ~6)
+    
+    // Sample fractal noise and scale it
+    let noise_value = fractal_noise(pos * noise_scale, octave_count);
     return noise_value * height_scale;
 }
 
