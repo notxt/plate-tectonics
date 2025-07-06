@@ -73,8 +73,8 @@ type TerrainBuffers = {
  * This function takes our CPU-side mesh data and uploads it to the GPU
  */
 const createTerrainBuffers = (device: GPUDevice): TerrainBuffers => {
-    // Create a 20x20 grid with 0.5 unit spacing
-    const mesh = createGridMesh(20, 20, 0.5);
+    // Create a 20x20 grid with 0.5 unit spacing in wireframe mode
+    const mesh = createGridMesh(20, 20, 0.5, true);
     
     // Create vertex buffer
     // Usage flags tell WebGPU how we'll use this buffer
@@ -143,9 +143,8 @@ const createRenderPipeline = async (device: GPUDevice, format: GPUTextureFormat)
             }],
         },
         primitive: {
-            topology: 'triangle-list',
-            // Enable wireframe mode for debugging
-            // cullMode: 'none',  // Show both sides of triangles
+            topology: 'line-list',  // Switch to line rendering to see wireframe
+            cullMode: 'none',       // Show both sides
         },
     });
     
