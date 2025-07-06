@@ -14,7 +14,18 @@ This is a plate tectonics simulation project for world building purposes, using 
 
 ## Current Status
 
-The project has basic WebGPU initialization and rendering setup complete. The TypeScript build system is configured with strict mode. Currently renders a blue background using WebGPU.
+**Phase 2 Complete**: 3D Terrain Foundation with Lighting
+- ✅ WebGPU initialization and rendering pipeline
+- ✅ Grid mesh generation with vertex and index buffers  
+- ✅ GPU-based Perlin noise terrain generation
+- ✅ Real-time normal calculation and directional lighting
+- ✅ Isometric 3D camera with proper view matrices
+- ✅ Height-based terrain coloring with smooth gradients
+
+**Currently Working On**: Phase 3 - Procedural Terrain Generation
+- 🔄 Multiple octaves for realistic terrain detail
+- ⏳ Advanced noise parameters and controls
+- ⏳ Erosion simulation and geological processes
 
 ## Project Structure
 
@@ -43,6 +54,32 @@ The project has basic WebGPU initialization and rendering setup complete. The Ty
 - **Minimal Code**: Keep code concise and readable, avoid over-engineering
 - **Simplicity First**: Choose simple, clear solutions over complex abstractions
 - **Type Aliases over Interfaces**: Use `type` instead of `interface` for type definitions
+
+## Preferred Development Style
+
+This project benefits from a **step-by-step, educational approach** that treats development like writing a textbook:
+
+### Communication Style
+- **Explain the "why"** before the "how" - cover mathematical concepts and theory first
+- **Break complex topics into digestible steps** - implement piece by piece with frequent pauses
+- **Use teaching language** - "Let me show you...", "Notice how...", "The key insight is..."
+- **Provide context** - explain how each piece fits into the bigger picture
+- **Ask for confirmation** - "Are you ready for the next step?", "Does this make sense?"
+
+### Implementation Approach
+- **Theory first, then code** - explain mathematical foundations before implementation
+- **Build incrementally** - add one function at a time with full explanations
+- **Show intermediate results** - take screenshots to see progress at each stage
+- **Use detailed comments** - explain not just what, but why each piece works
+- **Pause frequently** - allow time to understand each concept before moving on
+
+### Code Documentation
+- **Comment the math** - explain formulas and their significance
+- **Label algorithm steps** - "Step 1:", "Step 2:" etc. in comments
+- **Explain complex functions** - break down what each parameter does
+- **Connect to theory** - reference the mathematical concepts in code comments
+
+This educational style helps build deep understanding of complex topics like graphics programming, WebGPU, and mathematical simulations.
 
 ## Development Notes
 
