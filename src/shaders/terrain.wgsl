@@ -6,6 +6,7 @@ struct Uniforms {
 
 struct VertexInput {
     @location(0) position: vec3<f32>,
+    @location(1) normal: vec3<f32>,
 }
 
 struct VertexOutput {
@@ -20,14 +21,21 @@ fn vs_main(input: VertexInput) -> VertexOutput {
     // Transform position using view-projection matrix
     output.clip_position = uniforms.view_proj_matrix * vec4<f32>(input.position, 1.0);
     
-    // Color based on height (elevation)
-    // Higher terrain = more red/white, lower = more blue/green
-    let height_normalized = (input.position.y + 1.0) / 2.0;  // Normalize height to 0-1
-    output.color = vec3<f32>(
+    // Simple directional lighting
+    let light_direction = normalize(vec3<f32>(0.5, 1.0, 0.3));  // Light from above-right
+    let diffuse = max(dot(input.normal, light_direction), 0.0);
+    
+    // Base color based on height (elevation)
+    let height_normalized = (input.position.y + 1.0) / 2.0;
+    let base_color = vec3<f32>(
         height_normalized,              // Red increases with height
         0.3 + height_normalized * 0.4,  // Green: moderate level
         1.0 - height_normalized         // Blue decreases with height
     );
+    
+    // Apply lighting
+    let ambient = 0.3;  // Ambient light
+    output.color = base_color * (ambient + diffuse * 0.7);
     
     return output;
 }

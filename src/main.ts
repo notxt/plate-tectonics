@@ -2,7 +2,6 @@
 
 import { loadShader } from './shaderLoader.js';
 import { createGridMesh } from './terrain/gridMesh.js';
-import { createPerspectiveMatrix, createLookAtMatrix } from './math/matrices.js';
 
 const initWebGPU = async (): Promise<{
     device: GPUDevice;
@@ -65,6 +64,7 @@ const resizeCanvas = (canvas: HTMLCanvasElement): void => {
 
 type TerrainBuffers = {
     vertexBuffer: GPUBuffer;
+    normalBuffer: GPUBuffer;
     indexBuffer: GPUBuffer;
     indexCount: number;
 };
@@ -79,8 +79,8 @@ type CameraUniforms = {
  * This function takes our CPU-side mesh data and uploads it to the GPU
  */
 const createTerrainBuffers = (device: GPUDevice): TerrainBuffers => {
-    // Create a 20x20 grid with 0.5 unit spacing (solid triangles)
-    const mesh = createGridMesh(20, 20, 0.5, false);
+    // Create a 20x20 grid with larger spacing for better visibility
+    const mesh = createGridMesh(20, 20, 0.8, false);
     
     // Create vertex buffer
     // Usage flags tell WebGPU how we'll use this buffer
@@ -92,6 +92,16 @@ const createTerrainBuffers = (device: GPUDevice): TerrainBuffers => {
     
     // Upload vertex data to GPU
     device.queue.writeBuffer(vertexBuffer, 0, mesh.vertices);
+    
+    // Create normal buffer
+    const normalBuffer = device.createBuffer({
+        label: 'Terrain Normal Buffer',
+        size: mesh.normals.byteLength,
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+    });
+    
+    // Upload normal data to GPU
+    device.queue.writeBuffer(normalBuffer, 0, mesh.normals);
     
     // Create index buffer
     const indexBuffer = device.createBuffer({
@@ -105,6 +115,7 @@ const createTerrainBuffers = (device: GPUDevice): TerrainBuffers => {
     
     return {
         vertexBuffer,
+        normalBuffer,
         indexBuffer,
         indexCount: mesh.indices.length,
     };
@@ -125,8 +136,8 @@ const createCameraUniforms = (device: GPUDevice, pipeline: GPURenderPipeline, ca
     console.log('Canvas size:', canvas.width, canvas.height);
     console.log('Creating camera uniforms...');
     
-    // Isometric view: rotate around X axis to look down, then rotate around Y axis for angle
-    const scale = 0.1;
+    // Better isometric view with larger terrain
+    const scale = 0.2;  // Make terrain even bigger for better visibility
     const cos45 = Math.cos(Math.PI / 4);  // 45 degrees
     const sin45 = Math.sin(Math.PI / 4);
     const cos30 = Math.cos(Math.PI / 6);  // 30 degrees  
@@ -157,20 +168,6 @@ const createCameraUniforms = (device: GPUDevice, pipeline: GPURenderPipeline, ca
     return { uniformBuffer, bindGroup };
 };
 
-// Simple 4x4 matrix multiplication
-const multiplyMatrices = (a: Float32Array, b: Float32Array): Float32Array => {
-    const result = new Float32Array(16);
-    for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < 4; j++) {
-            result[i * 4 + j] = 
-                (a[i * 4 + 0] ?? 0) * (b[0 * 4 + j] ?? 0) +
-                (a[i * 4 + 1] ?? 0) * (b[1 * 4 + j] ?? 0) +
-                (a[i * 4 + 2] ?? 0) * (b[2 * 4 + j] ?? 0) +
-                (a[i * 4 + 3] ?? 0) * (b[3 * 4 + j] ?? 0);
-        }
-    }
-    return result;
-};
 
 const createRenderPipeline = async (device: GPUDevice, format: GPUTextureFormat): Promise<GPURenderPipeline> => {
     const shaderCode = await loadShader('./src/shaders/terrain.wgsl');
@@ -180,17 +177,21 @@ const createRenderPipeline = async (device: GPUDevice, format: GPUTextureFormat)
         code: shaderCode,
     });
     
-    // Define vertex buffer layout
-    // This tells the GPU how to read our vertex data
+    // Define vertex buffer layouts
     const vertexBufferLayout: GPUVertexBufferLayout = {
-        // How many bytes to skip between vertices
         arrayStride: 3 * 4, // 3 floats (x,y,z) × 4 bytes per float
         attributes: [{
-            // Which shader input this feeds (@location(0))
-            shaderLocation: 0,
-            // Where in the buffer this attribute starts
+            shaderLocation: 0,  // @location(0) position
             offset: 0,
-            // What type of data (float32x3 = vec3<f32>)
+            format: 'float32x3',
+        }],
+    };
+    
+    const normalBufferLayout: GPUVertexBufferLayout = {
+        arrayStride: 3 * 4, // 3 floats (nx,ny,nz) × 4 bytes per float
+        attributes: [{
+            shaderLocation: 1,  // @location(1) normal
+            offset: 0,
             format: 'float32x3',
         }],
     };
@@ -201,7 +202,7 @@ const createRenderPipeline = async (device: GPUDevice, format: GPUTextureFormat)
         vertex: {
             module: shaderModule,
             entryPoint: 'vs_main',
-            buffers: [vertexBufferLayout], // Tell GPU about our vertex layout
+            buffers: [vertexBufferLayout, normalBufferLayout], // Both vertex and normal buffers
         },
         fragment: {
             module: shaderModule,
@@ -262,8 +263,9 @@ const main = async (): Promise<void> => {
             // Bind uniform buffer (camera matrices)
             passEncoder.setBindGroup(0, camera.bindGroup);
             
-            // Bind vertex buffer
-            passEncoder.setVertexBuffer(0, terrain.vertexBuffer);
+            // Bind vertex and normal buffers
+            passEncoder.setVertexBuffer(0, terrain.vertexBuffer);   // @location(0)
+            passEncoder.setVertexBuffer(1, terrain.normalBuffer);   // @location(1)
             
             // Bind index buffer
             passEncoder.setIndexBuffer(terrain.indexBuffer, 'uint16');
