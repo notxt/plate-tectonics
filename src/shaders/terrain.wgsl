@@ -11,21 +11,21 @@ struct VertexOutput {
 fn vs_main(input: VertexInput) -> VertexOutput {
     var output: VertexOutput;
     
-    // Scale down the grid to fit in view
-    // Our grid is 10x10 units, so scale by 0.2 to fit in clip space
+    // Scale down the grid to fit in view and use actual 3D positions
     output.clip_position = vec4<f32>(
         input.position.x * 0.2,
-        input.position.z * 0.2,  // Use Z for Y in screen space
-        0.5,                     // Middle depth
+        input.position.y * 0.2,  // Use the height values!
+        input.position.z * 0.2,  // Use Z for depth
         1.0
     );
     
-    // Brighter colors for debugging
-    // Create a gradient across the grid
+    // Color based on height (elevation)
+    // Higher terrain = more red/white, lower = more blue/green
+    let height_normalized = (input.position.y + 1.0) / 2.0;  // Normalize height to 0-1
     output.color = vec3<f32>(
-        (input.position.x + 5.0) / 10.0,  // Red: 0 to 1 across X
-        0.5,                               // Green: constant
-        (input.position.z + 5.0) / 10.0   // Blue: 0 to 1 across Z
+        height_normalized,              // Red increases with height
+        0.3 + height_normalized * 0.4,  // Green: moderate level
+        1.0 - height_normalized         // Blue decreases with height
     );
     
     return output;

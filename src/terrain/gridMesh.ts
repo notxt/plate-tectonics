@@ -27,12 +27,16 @@ export const createGridMesh = (width: number, height: number, spacing: number = 
         for (let x = 0; x < width; x++) {
             // Calculate world position
             const worldX = (x - width / 2) * spacing;
-            const worldY = 0; // Flat for now
             const worldZ = (z - height / 2) * spacing;
+            
+            // Generate height using simple sine waves for terrain-like appearance
+            const heightY = Math.sin(worldX * 0.3) * 0.5 + 
+                           Math.sin(worldZ * 0.2) * 0.3 + 
+                           Math.sin((worldX + worldZ) * 0.1) * 0.2;
             
             // Store in array
             vertices[vertexIndex++] = worldX;
-            vertices[vertexIndex++] = worldY;
+            vertices[vertexIndex++] = heightY;
             vertices[vertexIndex++] = worldZ;
         }
     }
