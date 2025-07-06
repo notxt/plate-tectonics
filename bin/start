@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Start all development processes
+
+echo "Starting development environment..."
+
+# Clean logs
+> log/tsc.log
+> log/server.log
+
+# Start TypeScript compiler
+./bin/dev
+
+# Start server
+./bin/serve
+
+echo ""
+echo "Development environment started!"
+echo "View logs with: ./bin/logs [server|tsc]"
+echo "Stop all with: ./bin/stop"

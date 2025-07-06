@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Stop all background processes
+
+echo "Stopping processes..."
+
+# Stop TypeScript compiler
+pkill -f "tsc --watch" && echo "TypeScript compiler stopped"
+
+# Stop Node server
+pkill -f "node server.js" && echo "Server stopped"
+
+echo "All processes stopped"

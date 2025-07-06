@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+node server.js > log/server.log 2>&1 &
+echo "Server started (PID: $!)"
+echo "Logs: log/server.log"
+echo "URL: http://localhost:8080"

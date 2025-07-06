@@ -1,0 +1,12 @@
+{
+  "name": "plate-tectonics",
+  "version": "1.0.0",
+  "description": "Geology simulator using WebGPU",
+  "type": "module",
+  "devDependencies": {
+    "@tsconfig/strictest": "^2.0.5",
+    "@webgpu/types": "^0.1.40",
+    "typescript": "^5.5.4",
+    "@playwright/test": "^1.48.2"
+  }
+}

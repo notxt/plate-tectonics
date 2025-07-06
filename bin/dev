@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+npx tsc --watch > log/tsc.log 2>&1 &
+echo "TypeScript compiler started in watch mode (PID: $!)"
+echo "Logs: log/tsc.log"

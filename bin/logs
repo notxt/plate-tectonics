@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# View logs with tail -f
+
+if [ "$1" = "server" ]; then
+    tail -f log/server.log
+elif [ "$1" = "tsc" ]; then
+    tail -f log/tsc.log
+else
+    echo "Usage: ./bin/logs [server|tsc]"
+    echo ""
+    echo "Available logs:"
+    echo "  server - Development server logs"
+    echo "  tsc    - TypeScript compiler logs"
+fi
