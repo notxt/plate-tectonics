@@ -11,7 +11,7 @@ const MIME_TYPES = {
   '.js': 'application/javascript',
   '.css': 'text/css',
   '.json': 'application/json',
-  '.wgsl': 'text/plain',
+  '.wgsl': 'text/wgsl',
 };
 
 const server = createServer(async (req, res) => {

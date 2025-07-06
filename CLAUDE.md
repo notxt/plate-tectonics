@@ -42,6 +42,7 @@ The project has basic WebGPU initialization and rendering setup complete. The Ty
 - **No Frameworks**: Direct WebGPU API usage, no Three.js or other abstractions
 - **Minimal Code**: Keep code concise and readable, avoid over-engineering
 - **Simplicity First**: Choose simple, clear solutions over complex abstractions
+- **Type Aliases over Interfaces**: Use `type` instead of `interface` for type definitions
 
 ## Development Notes
 

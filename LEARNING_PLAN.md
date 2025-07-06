@@ -17,13 +17,33 @@ Building a geology simulator step-by-step to learn WebGPU and geological simulat
 
 ### Phase 2: Height Map Visualization
 **Goal**: Generate and display terrain using height maps
-- [ ] Generate height data using simple functions
-- [ ] Create vertex grid from height data
-- [ ] Implement basic lighting/shading
-- [ ] Add camera controls for viewing
+
+#### Step 2.1: Create Grid Mesh (Current)
+- [ ] Understand vertex buffer layouts and data packing
+- [ ] Generate grid vertex positions (x, z coordinates)
+- [ ] Create index buffer for triangle connectivity
+- [ ] Pass vertex data from CPU to GPU
+- [ ] Render wireframe to visualize mesh structure
+
+#### Step 2.2: Add Height Values
+- [ ] Modify vertices to include height (y) values
+- [ ] Start with simple mathematical functions (sine waves)
+- [ ] Update vertex shader to use 3D positions
+- [ ] Visualize height differences with vertex colors
+
+#### Step 2.3: Camera and Projection
+- [ ] Implement perspective projection matrix
+- [ ] Add view matrix for camera positioning
+- [ ] Create uniform buffer for matrices
+- [ ] Add basic camera controls (rotation)
+
+#### Step 2.4: Basic Lighting
+- [ ] Calculate vertex normals
+- [ ] Implement simple directional lighting
+- [ ] Add ambient and diffuse components
 - [ ] Color terrain by elevation
 
-**Concepts**: Vertex generation, index buffers, uniform buffers, basic lighting
+**Concepts**: Vertex buffers, index buffers, data layouts, GPU memory management, matrix math, uniform buffers
 
 ### Phase 3: Procedural Terrain Generation
 **Goal**: Create realistic terrain using noise functions
